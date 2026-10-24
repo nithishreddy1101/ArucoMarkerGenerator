@@ -3,6 +3,8 @@
 A static website that generates printable **ArUco** and **AprilTag** marker sheets at exact physical sizes.
 Everything runs in the browser — no server, no build step, no external libraries.
 
+**Live site: https://nithishreddy1101.github.io/ArucoMarkerGenerator/**
+
 ## Features
 
 - **All OpenCV predefined dictionaries**
@@ -63,5 +65,3 @@ Generated sheets were verified by rasterizing the PDFs and detecting every marke
 ## License
 
 Free to use and modify for personal and educational purposes.
-# ArucoMarkerGenerator
-# ArucoMarkerGenerator
