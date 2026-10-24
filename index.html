@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArUco Marker Generator</title>
+<meta name="description" content="Generate printable ArUco and AprilTag marker sheets (PDF/SVG) at exact physical sizes, entirely in your browser.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>ArUco Marker Generator</h1>
+  <p>Printable ArUco &amp; AprilTag sheets at exact sizes. Runs entirely in your browser.</p>
+</header>
+
+<main class="layout">
+  <form id="controls" class="controls" autocomplete="off" onsubmit="return false">
+
+    <fieldset>
+      <legend>Marker</legend>
+      <label>Dictionary
+        <select id="dictionary"></select>
+      </label>
+      <p class="hint" id="dictInfo"></p>
+      <label>Border width (bits)
+        <input id="borderBits" type="number" min="1" max="4" step="1" value="1">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Marker IDs</legend>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="idMode" value="range" checked><span>Range</span></label>
+        <label><input type="radio" name="idMode" value="list"><span>List</span></label>
+        <label><input type="radio" name="idMode" value="all"><span>All</span></label>
+      </div>
+      <div class="row" data-show="idMode=range">
+        <label>First ID <input id="idStart" type="number" min="0" step="1" value="0"></label>
+        <label>Number of markers <input id="idCount" type="number" min="1" step="1" value="12"></label>
+      </div>
+      <label data-show="idMode=list">IDs <span class="hint-inline">e.g. 0-9, 15, 20-24</span>
+        <input id="idList" type="text" value="0-5, 10, 42">
+      </label>
+      <label>Copies of each marker
+        <input id="copies" type="number" min="1" max="100" step="1" value="1">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Paper</legend>
+      <label>Paper size
+        <select id="paper"></select>
+      </label>
+      <div class="row" data-show="paper=custom">
+        <label>Width <input id="customW" class="len" type="number" min="10" step="any" value="210"></label>
+        <label>Height <input id="customH" class="len" type="number" min="10" step="any" value="297"></label>
+      </div>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="orientation" value="portrait" checked><span>Portrait</span></label>
+        <label><input type="radio" name="orientation" value="landscape"><span>Landscape</span></label>
+      </div>
+      <label>Units
+        <select id="units">
+          <option value="mm">Millimetres (mm)</option>
+          <option value="cm">Centimetres (cm)</option>
+          <option value="in">Inches (in)</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Size &amp; layout</legend>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="sizeMode" value="fixed" checked><span>Exact size</span></label>
+        <label><input type="radio" name="sizeMode" value="grid"><span>Per page</span></label>
+        <label><input type="radio" name="sizeMode" value="max"><span>One / page</span></label>
+      </div>
+      <label data-show="sizeMode=fixed">Marker size (outer black edge)
+        <input id="markerSize" class="len" type="number" min="1" step="any" value="40">
+      </label>
+      <div class="row" data-show="sizeMode=grid">
+        <label>Columns <input id="gridCols" type="number" min="1" max="50" step="1" value="3"></label>
+        <label>Rows <input id="gridRows" type="number" min="1" max="50" step="1" value="4"></label>
+      </div>
+      <div class="row">
+        <label>Page margin <input id="margin" class="len" type="number" min="0" step="any" value="10"></label>
+        <label>Gap between <input id="gap" class="len" type="number" min="0" step="any" value="5"></label>
+      </div>
+      <label>White quiet zone around marker
+        <input id="quiet" class="len" type="number" min="0" step="any" value="7">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Labels &amp; guides</legend>
+      <label class="check"><input id="labelId" type="checkbox" checked> Print marker ID</label>
+      <label class="check"><input id="labelDict" type="checkbox"> Print dictionary name</label>
+      <label class="check"><input id="labelSize" type="checkbox"> Print marker size</label>
+      <label>Label font size (pt)
+        <input id="fontSize" type="number" min="4" max="48" step="1" value="9">
+      </label>
+      <label>Cut guides
+        <select id="cutStyle">
+          <option value="corners">Corner marks</option>
+          <option value="dashed">Dashed outline</option>
+          <option value="solid">Solid outline</option>
+          <option value="none">None</option>
+        </select>
+      </label>
+      <label class="check"><input id="scaleBar" type="checkbox" checked> Scale check bar on each page</label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" id="btnPdf" class="primary">Download PDF</button>
+      <button type="button" id="btnOpenPdf">Open PDF to print</button>
+      <button type="button" id="btnSvg">Download page SVG</button>
+      <button type="button" id="btnReset" class="ghost">Reset settings</button>
+    </div>
+  </form>
+
+  <section class="preview-pane" aria-live="polite">
+    <div id="summary" class="summary"></div>
+    <div id="errors" class="errors" hidden></div>
+    <div id="warnings" class="warnings" hidden></div>
+    <div class="pager">
+      <button type="button" id="prevPage" aria-label="Previous page">&#8249;</button>
+      <span id="pageLabel">Page 1 / 1</span>
+      <button type="button" id="nextPage" aria-label="Next page">&#8250;</button>
+    </div>
+    <div id="preview" class="preview"></div>
+    <p class="hint center">Print at <strong>100% / Actual size</strong> (disable “Fit to page”), then check the scale bar with a ruler.</p>
+  </section>
+</main>
+
+<script src="js/dictionaries.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
